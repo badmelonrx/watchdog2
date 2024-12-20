@@ -150,13 +150,8 @@ const EditItemPage = () => {
   useEffect(() => {
     const hasUnsavedPhotos = photos.some((photo) => !photo.isServerPhoto);
     const hasMarkedForDeletion = markedForDeletion.length > 0;
-  
-    if (hasUnsavedPhotos || hasMarkedForDeletion) {
-      setIsEdited(true);
-    }
+    setIsEdited(hasUnsavedPhotos || hasMarkedForDeletion);
   }, [photos, markedForDeletion]);
-  
-  
 
   // Handle Search and Selection
   const handleSearchChange = async (event, value) => {
@@ -213,34 +208,47 @@ const EditItemPage = () => {
     event.preventDefault();
   
     try {
-      // Upload new photos
-      const newPhotos = photos.filter((photo) => !photo.isServerPhoto); // Filter out server photos
-      const uploadedPhotoIds = await Promise.all(
-        newPhotos.map(async (photo) => {
-          const formData = new FormData();
-          formData.append("files", photo.file); // Append the file
-          const response = await uploadFile(formData); // Upload the file
-          console.log(response);
-          return response.photoIds; // Extract photo ID
+      // Upload new photos and update `isServerPhoto` immediately
+      const updatedPhotos = await Promise.all(
+        photos.map(async (photo) => {
+          if (!photo.isServerPhoto) {
+            const formData = new FormData();
+            formData.append("files", photo.file);
+            const response = await uploadFile(formData);
+  
+            return {
+              ...photo,
+              photoId: response.photoIds[0], // Use returned ID
+              isServerPhoto: true, // Mark as server photo immediately
+            };
+          }
+          return photo; // No changes for already server photos
         })
       );
   
-      // Combine existing and new photo IDs
-      const finalPhotoIds = [
-        ...photos.filter((photo) => photo.isServerPhoto).map((photo) => photo.photoId),
-        ...uploadedPhotoIds.flat(),
-      ];
+      // Update the `photoIds` in `itemData`
+      const finalPhotoIds = updatedPhotos.map((photo) => photo.photoId);
   
       // Prepare item data with updated photo IDs
       const finalItemData = { ...itemData, photoIds: finalPhotoIds };
   
       // Save updated data via PUT
       await putItem(itemData.id, finalItemData);
+  
+      // Delete marked photos
+      await Promise.all(
+        markedForDeletion.map((photoId) => deleteFile(photoId))
+      );
+  
+      // Reset state
+      setPhotos(updatedPhotos); // Replace the entire photos array
+      setMarkedForDeletion([]);
       setIsEdited(false);
     } catch (error) {
       console.error("Error saving item:", error.message);
     }
   };
+  
   
   return (
     <Box sx={{ p: 4 }}>
