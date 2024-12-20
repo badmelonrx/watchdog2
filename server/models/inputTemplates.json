@@ -1,0 +1,60 @@
+{
+  "fields": {
+    "name": {
+      "value": "",
+      "inputType": "searchbox",
+      "required": true,
+      "readOnly": false,
+      "fetchOptions": "https://boardgamegeek.com/api/market/products/search?ajax=1&marketdomain=boardgame&q="
+    },
+    "version": {
+      "value": "",
+      "inputType": "dependentDropdown",
+      "dependsOn": "name",
+      "required": true,
+      "readOnly": false
+    },
+    "sellingPrice": {
+      "value": "",
+      "inputType": "number",
+      "min": 1,
+      "required": true,
+      "readOnly": false
+    },
+    "purchaseCost": {
+      "value": "",
+      "inputType": "number",
+      "min": 0,
+      "required": true,
+      "readOnly": false
+    },
+    "conditionBGG": {
+      "value": "",
+      "inputType": "dropdown",
+      "options": ["New", "Like New", "Very Good", "Good", "Acceptable"],
+      "required": true,
+      "readOnly": false
+    },
+    "conditionEbay": {
+      "value": "",
+      "inputType": "dropdown",
+      "options": ["New", "Used"],
+      "required": true,
+      "readOnly": false
+    },
+    "description": {
+      "value": "",
+      "inputType": "textarea",
+      "maxLength": 500,
+      "required": true,
+      "readOnly": false
+    },
+    "photos": {
+      "value": [],
+      "inputType": "fileUpload",
+      "maxFiles": 12,
+      "required": false,
+      "readOnly": false
+    }
+  }
+}
